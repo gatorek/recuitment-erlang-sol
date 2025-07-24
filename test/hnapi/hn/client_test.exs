@@ -1,20 +1,26 @@
 defmodule Hnapi.Hn.ClientTest do
   use ExUnit.Case
 
-  test "returns empty map for empty top storiess" do
+  test "returns empty map when no top stories" do
     Req.Test.stub(Hnapi.Hn.Client, fn conn ->
+      assert conn.request_path == "/v0/topstories.json"
+
       Req.Test.json(conn, [])
     end)
 
     assert Hnapi.Hn.Client.get_top_stories() == %{}
   end
 
-  test "returns stories data for non empty top stories" do
+  test "returns stories data" do
     Req.Test.expect(Hnapi.Hn.Client, fn conn ->
+      assert conn.request_path == "/v0/topstories.json"
+
       Req.Test.json(conn, [112, 113])
     end)
 
     Req.Test.expect(Hnapi.Hn.Client, fn conn ->
+      assert conn.request_path == "/v0/item/112.json"
+
       Req.Test.json(conn, %{
         "by" => "user1",
         "descendants" => 1,
@@ -29,6 +35,8 @@ defmodule Hnapi.Hn.ClientTest do
     end)
 
     Req.Test.expect(Hnapi.Hn.Client, fn conn ->
+      assert conn.request_path == "/v0/item/113.json"
+
       Req.Test.json(conn, %{
         "by" => "user2",
         "descendants" => 2,
@@ -67,6 +75,31 @@ defmodule Hnapi.Hn.ClientTest do
                  "url" => "url2"
                }
              }
+  end
+
+  test "honors limit when fetching stories" do
+    Req.Test.expect(Hnapi.Hn.Client, fn conn ->
+      assert conn.request_path == "/v0/topstories.json"
+
+      Req.Test.json(conn, [112, 113, 114, 115])
+    end)
+
+    Req.Test.expect(Hnapi.Hn.Client, fn conn ->
+      assert conn.request_path == "/v0/item/112.json"
+
+      Req.Test.json(conn, %{"id" => 112})
+    end)
+
+    Req.Test.expect(Hnapi.Hn.Client, fn conn ->
+      assert conn.request_path == "/v0/item/113.json"
+
+      Req.Test.json(conn, %{"id" => 113})
+    end)
+
+    assert Hnapi.Hn.Client.get_top_stories(2) == %{
+             112 => %{"id" => 112},
+             113 => %{"id" => 113}
+           }
   end
 
   # TODO: tests HN client error handling after implementation

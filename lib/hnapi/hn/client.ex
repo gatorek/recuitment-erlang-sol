@@ -7,12 +7,17 @@ defmodule Hnapi.Hn.Client do
 
   @type id :: non_neg_integer()
   @type stories :: %{id => map()}
+  @type limit :: non_neg_integer()
 
   @base_url "https://hacker-news.firebaseio.com/v0"
+  @default_limit 50
 
-  @spec get_top_stories() :: stories
-  def get_top_stories do
-    story_ids = get_json("#{@base_url}/topstories.json")
+  @spec get_top_stories(limit) :: stories
+  def get_top_stories(limit \\ @default_limit) do
+    story_ids =
+      "#{@base_url}/topstories.json"
+      |> get_json()
+      |> Enum.take(limit)
 
     # TODO A naive implementation processing each story one by one; might be optimized
     Enum.map(story_ids, fn story_id ->
