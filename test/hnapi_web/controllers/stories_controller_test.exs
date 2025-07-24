@@ -13,7 +13,7 @@ defmodule HnapiWeb.StoriesControllerTest do
         |> get("/api/stories")
         |> json_response(200)
 
-      assert response == %{}
+      assert response == []
     end
 
     test "returns stories data for non empty stories", %{conn: conn} do
@@ -24,7 +24,7 @@ defmodule HnapiWeb.StoriesControllerTest do
         |> get("/api/stories")
         |> json_response(200)
 
-      assert response == %{"1" => %{"id" => 1}}
+      assert response == [%{"id" => 1}]
     end
   end
 end
