@@ -51,3 +51,6 @@ config :phoenix, :stacktrace_depth, 20
 
 # Initialize plugs at runtime for faster development compilation
 config :phoenix, :plug_init_mode, :runtime
+
+config :hnapi,
+  fetch_stories_interval: :timer.minutes(2)

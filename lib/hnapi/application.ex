@@ -7,16 +7,18 @@ defmodule Hnapi.Application do
 
   @impl true
   def start(_type, _args) do
-    children = [
-      HnapiWeb.Telemetry,
-      {DNSCluster, query: Application.get_env(:hnapi, :dns_cluster_query) || :ignore},
-      {Phoenix.PubSub, name: Hnapi.PubSub},
-      # Start a worker by calling: Hnapi.Worker.start_link(arg)
-      # {Hnapi.Worker, arg},
-      # Start to serve requests, typically the last entry
-      HnapiWeb.Endpoint,
-      Hnapi.Datastore.Server
-    ]
+    children =
+      [
+        HnapiWeb.Telemetry,
+        {DNSCluster, query: Application.get_env(:hnapi, :dns_cluster_query) || :ignore},
+        {Phoenix.PubSub, name: Hnapi.PubSub},
+        # Start a worker by calling: Hnapi.Worker.start_link(arg)
+        # {Hnapi.Worker, arg},
+        # Start to serve requests, typically the last entry
+        HnapiWeb.Endpoint,
+        Hnapi.Datastore.Server
+      ]
+      |> maybe_add_timer()
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
@@ -30,5 +32,15 @@ defmodule Hnapi.Application do
   def config_change(changed, _new, removed) do
     HnapiWeb.Endpoint.config_change(changed, removed)
     :ok
+  end
+
+  defp maybe_add_timer(children) do
+    interval = Application.get_env(:hnapi, :fetch_stories_interval)
+
+    if interval do
+      children ++ [{Hnapi.Timer.Worker, interval}]
+    else
+      children
+    end
   end
 end
