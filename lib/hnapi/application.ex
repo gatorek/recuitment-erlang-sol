@@ -14,7 +14,8 @@ defmodule Hnapi.Application do
       # Start a worker by calling: Hnapi.Worker.start_link(arg)
       # {Hnapi.Worker, arg},
       # Start to serve requests, typically the last entry
-      HnapiWeb.Endpoint
+      HnapiWeb.Endpoint,
+      Hnapi.Datastore.Server
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
