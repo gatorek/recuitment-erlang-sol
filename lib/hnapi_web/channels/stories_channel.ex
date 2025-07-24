@@ -4,7 +4,12 @@ defmodule HnapiWeb.StoriesChannel do
   @impl true
   def join("stories:lobby", payload, socket) do
     if authorized?(payload) do
-      {:ok, socket}
+      stories =
+        Hnapi.Datastore.Server.get_stories()
+        # TODO parsing response is duplicated here, but we'll get rid of it later
+        |> Map.values()
+
+      {:ok, %{stories: stories}, socket}
     else
       {:error, %{reason: "unauthorized"}}
     end
