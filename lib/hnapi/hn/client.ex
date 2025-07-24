@@ -25,7 +25,7 @@ defmodule Hnapi.Hn.Client do
 
   defp get_json(url) do
     url
-    |> Req.get!(Application.get_env(:hn_client, :hn_req_opts, []))
+    |> Req.get!(Application.get_env(:hnapi, :hn_req_opts, []))
     |> Map.get(:body)
   end
 end

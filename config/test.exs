@@ -13,5 +13,5 @@ config :logger, level: :warning
 # Initialize plugs at runtime for faster test compilation
 config :phoenix, :plug_init_mode, :runtime
 
-config :hn_client,
+config :hnapi,
   hn_req_opts: [plug: {Req.Test, Hnapi.Hn.Client}]
