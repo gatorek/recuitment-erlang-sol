@@ -6,7 +6,7 @@ defmodule HnapiWeb.StoriesControllerTest do
 
   describe "GET /api/stories" do
     test "returns empty map for empty stories", %{conn: conn} do
-      expect(Hnapi.Datastore.Server, :get_stories, fn -> %{} end)
+      expect(Hnapi.Datastore.Server, :get_stories, fn -> [] end)
 
       response =
         conn
@@ -17,7 +17,7 @@ defmodule HnapiWeb.StoriesControllerTest do
     end
 
     test "returns stories data for non empty stories", %{conn: conn} do
-      expect(Hnapi.Datastore.Server, :get_stories, fn -> %{1 => %{"id" => 1}} end)
+      expect(Hnapi.Datastore.Server, :get_stories, fn -> [%{"id" => 1}] end)
 
       response =
         conn

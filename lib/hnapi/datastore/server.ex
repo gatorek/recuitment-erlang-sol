@@ -10,12 +10,12 @@ defmodule Hnapi.Datastore.Server do
   end
 
   def init(_opts) do
-    {:ok, %{stories: %{}}}
+    {:ok, %{stories: []}}
   end
 
-  @spec add_stories(any()) :: :ok
-  def add_stories(stories) do
-    GenServer.cast(__MODULE__, {:add_stories, stories})
+  @spec store_stories(any()) :: :ok
+  def store_stories(stories) do
+    GenServer.cast(__MODULE__, {:store_stories, stories})
 
     :ok
   end
@@ -25,10 +25,8 @@ defmodule Hnapi.Datastore.Server do
     GenServer.call(__MODULE__, :get_stories)
   end
 
-  def handle_cast({:add_stories, stories}, state) do
-    # We could extract logic for updating stories into a separate module for better testability
-    # but for now it's simple enough to keep it here
-    {:noreply, %{state | stories: Map.merge(state.stories, stories)}}
+  def handle_cast({:store_stories, stories}, state) do
+    {:noreply, %{state | stories: stories}}
   end
 
   def handle_call(:get_stories, _from, state) do

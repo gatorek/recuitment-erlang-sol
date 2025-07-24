@@ -23,9 +23,7 @@ defmodule Hnapi.Hn.Client do
     Enum.map(story_ids, fn story_id ->
       "#{@base_url}/item/#{story_id}.json"
       |> get_json()
-      |> then(&{&1["id"], &1})
     end)
-    |> Enum.into(%{})
   end
 
   defp get_json(url) do

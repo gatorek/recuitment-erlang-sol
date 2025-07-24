@@ -7,10 +7,10 @@ defmodule HnapiWeb.StoriesChannelTest do
   test "sends stories to client on join" do
     # Mock the Datastore.Server to return some test stories
     expect(Hnapi.Datastore.Server, :get_stories, fn ->
-      %{
-        1 => %{"id" => 1, "title" => "Test Story 1"},
-        2 => %{"id" => 2, "title" => "Test Story 2"}
-      }
+      [
+        %{"id" => 1, "title" => "Test Story 1"},
+        %{"id" => 2, "title" => "Test Story 2"}
+      ]
     end)
 
     {:ok, reply, _socket} = connect_socket()

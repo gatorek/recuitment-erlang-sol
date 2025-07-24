@@ -8,7 +8,7 @@ defmodule Hnapi.Hn.ClientTest do
       Req.Test.json(conn, [])
     end)
 
-    assert Hnapi.Hn.Client.get_top_stories() == %{}
+    assert Hnapi.Hn.Client.get_top_stories() == []
   end
 
   test "returns stories data" do
@@ -51,8 +51,8 @@ defmodule Hnapi.Hn.ClientTest do
     end)
 
     assert Hnapi.Hn.Client.get_top_stories() ==
-             %{
-               112 => %{
+             [
+               %{
                  "by" => "user1",
                  "descendants" => 1,
                  "id" => 112,
@@ -63,7 +63,7 @@ defmodule Hnapi.Hn.ClientTest do
                  "type" => "story",
                  "url" => "url1"
                },
-               113 => %{
+               %{
                  "by" => "user2",
                  "descendants" => 2,
                  "id" => 113,
@@ -74,7 +74,7 @@ defmodule Hnapi.Hn.ClientTest do
                  "type" => "story",
                  "url" => "url2"
                }
-             }
+             ]
   end
 
   test "honors limit when fetching stories" do
@@ -96,10 +96,10 @@ defmodule Hnapi.Hn.ClientTest do
       Req.Test.json(conn, %{"id" => 113})
     end)
 
-    assert Hnapi.Hn.Client.get_top_stories(2) == %{
-             112 => %{"id" => 112},
-             113 => %{"id" => 113}
-           }
+    assert Hnapi.Hn.Client.get_top_stories(2) == [
+             %{"id" => 112},
+             %{"id" => 113}
+           ]
   end
 
   # TODO: tests HN client error handling after implementation

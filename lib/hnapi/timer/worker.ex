@@ -26,7 +26,7 @@ defmodule Hnapi.Timer.Worker do
 
   defp fetch_and_store_stories do
     Hnapi.Hn.Client.get_top_stories()
-    |> Hnapi.Datastore.Server.add_stories()
+    |> Hnapi.Datastore.Server.store_stories()
   end
 
   defp trigger_fetch do

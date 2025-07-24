@@ -9,23 +9,26 @@ defmodule Hnapi.Datastore.ServerTest do
     :ok = Application.start(:hnapi)
   end
 
-  test "add and get stories" do
-    Hnapi.Datastore.Server.add_stories(%{1 => %{"id" => 1}})
+  test "stores and gets stories" do
+    Hnapi.Datastore.Server.store_stories([%{"id" => 1}])
 
-    assert Hnapi.Datastore.Server.get_stories() == %{1 => %{"id" => 1}}
+    assert Hnapi.Datastore.Server.get_stories() == [%{"id" => 1}]
   end
 
   test "overrides existing stories with new data" do
-    Hnapi.Datastore.Server.add_stories(%{
-      1 => %{"id" => 1, "title" => "title1"},
-      2 => %{"id" => 2, "title" => "title2"}
-    })
+    Hnapi.Datastore.Server.store_stories([
+      %{"id" => 1, "title" => "title1"},
+      %{"id" => 2, "title" => "title2"}
+    ])
 
-    Hnapi.Datastore.Server.add_stories(%{1 => %{"id" => 1, "title" => "title1a"}})
+    Hnapi.Datastore.Server.store_stories([
+      %{"id" => 1, "title" => "title1a"},
+      %{"id" => 2, "title" => "title2a"}
+    ])
 
-    assert Hnapi.Datastore.Server.get_stories() == %{
-             1 => %{"id" => 1, "title" => "title1a"},
-             2 => %{"id" => 2, "title" => "title2"}
-           }
+    assert Hnapi.Datastore.Server.get_stories() == [
+             %{"id" => 1, "title" => "title1a"},
+             %{"id" => 2, "title" => "title2a"}
+           ]
   end
 end
