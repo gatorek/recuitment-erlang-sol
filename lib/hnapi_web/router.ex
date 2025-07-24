@@ -7,5 +7,6 @@ defmodule HnapiWeb.Router do
 
   scope "/api", HnapiWeb do
     pipe_through :api
+    get "/stories", StoriesController, :index
   end
 end
