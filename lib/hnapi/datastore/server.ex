@@ -3,9 +3,11 @@ defmodule Hnapi.Datastore.Server do
   Local store for the top stories.
   """
 
-  @type stories :: Hnapi.Hn.Client.stories()
   @type page :: non_neg_integer()
   @type limit :: non_neg_integer()
+  @type id :: non_neg_integer()
+  @type story :: Hnapi.Hn.Client.story()
+  @type stories :: Hnapi.Hn.Client.stories()
 
   use GenServer
 
@@ -38,6 +40,11 @@ defmodule Hnapi.Datastore.Server do
     GenServer.call(__MODULE__, {:get_stories, page, limit})
   end
 
+  @spec get_story(id) :: story | nil
+  def get_story(id) do
+    GenServer.call(__MODULE__, {:get_story, id})
+  end
+
   def handle_cast({:store_stories, stories}, state) do
     {:noreply, %{state | stories: stories}}
   end
@@ -50,5 +57,9 @@ defmodule Hnapi.Datastore.Server do
     # If we need to add more business logic, we should extract it to a separate module.
     # For now, with this simple implementation we can just put it here.
     {:reply, Enum.slice(state.stories, (page - 1) * limit, limit), state}
+  end
+
+  def handle_call({:get_story, id}, _from, state) do
+    {:reply, Enum.find(state.stories, fn story -> story["id"] == id end), state}
   end
 end

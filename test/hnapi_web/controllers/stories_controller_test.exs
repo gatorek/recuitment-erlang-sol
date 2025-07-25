@@ -77,4 +77,34 @@ defmodule HnapiWeb.StoriesControllerTest do
       assert response == []
     end
   end
+
+  describe "GET /api/stories/:id" do
+    test "returns story by id", %{conn: conn} do
+      expect(Hnapi.Datastore.Server, :get_story, fn id ->
+        assert id == 1
+        %{"id" => 1}
+      end)
+
+      response =
+        conn
+        |> get("/api/stories/1")
+        |> json_response(200)
+
+      assert response == %{"id" => 1}
+    end
+
+    test "returns not found for non existing story", %{conn: conn} do
+      expect(Hnapi.Datastore.Server, :get_story, fn id ->
+        assert id == 1
+        nil
+      end)
+
+      response =
+        conn
+        |> get("/api/stories/1")
+        |> json_response(404)
+
+      assert response == %{"error" => "Story not found"}
+    end
+  end
 end

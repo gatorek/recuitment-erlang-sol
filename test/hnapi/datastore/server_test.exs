@@ -55,4 +55,18 @@ defmodule Hnapi.Datastore.ServerTest do
              %{"id" => 5, "title" => "title5"}
            ]
   end
+
+  test "returns story by id" do
+    Hnapi.Datastore.Server.store_stories([
+      %{"id" => 1, "title" => "title1"},
+      %{"id" => 2, "title" => "title2"}
+    ])
+
+    assert Hnapi.Datastore.Server.get_story(1) == %{"id" => 1, "title" => "title1"}
+    assert Hnapi.Datastore.Server.get_story(2) == %{"id" => 2, "title" => "title2"}
+  end
+
+  test "returns nil for non existing story" do
+    assert Hnapi.Datastore.Server.get_story(1) == nil
+  end
 end

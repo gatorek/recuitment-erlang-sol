@@ -11,6 +11,20 @@ defmodule HnapiWeb.StoriesController do
     json(conn, Hnapi.Datastore.Server.get_stories(page, limit))
   end
 
+  def show(conn, %{"id" => id}) do
+    # TODO: handle invalid id; for now we relay on datastore to return nil
+    id = parse_int(id, 0)
+    story = Hnapi.Datastore.Server.get_story(id)
+
+    if story do
+      json(conn, story)
+    else
+      conn
+      |> put_status(:not_found)
+      |> json(%{error: "Story not found"})
+    end
+  end
+
   # Helper functions for testing
   def default_page(), do: @default_page
   def default_limit(), do: @default_limit
