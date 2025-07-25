@@ -1,15 +1,14 @@
 defmodule HnapiWeb.StoriesChannel do
+  @moduledoc """
+  A channel for stories.
+  """
   use HnapiWeb, :channel
 
   @impl true
-  def join("stories:lobby", payload, socket) do
-    if authorized?(payload) do
-      stories = Hnapi.Datastore.Server.get_stories()
+  def join("stories:lobby", _payload, socket) do
+    stories = Hnapi.Datastore.Server.get_stories()
 
-      {:ok, %{stories: stories}, socket}
-    else
-      {:error, %{reason: "unauthorized"}}
-    end
+    {:ok, %{stories: stories}, socket}
   end
 
   # Add authorization logic here as required.
