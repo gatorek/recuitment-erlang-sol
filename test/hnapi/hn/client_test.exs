@@ -1,5 +1,6 @@
 defmodule Hnapi.Hn.ClientTest do
   use ExUnit.Case
+  import ExUnit.CaptureLog
   import Req.Test
 
   setup :set_req_test_to_shared
@@ -116,7 +117,13 @@ defmodule Hnapi.Hn.ClientTest do
       Req.Test.transport_error(conn, :timeout)
     end)
 
-    assert Hnapi.Hn.Client.get_top_stories(2) == :error
+    {result, log} =
+      with_log(fn ->
+        Hnapi.Hn.Client.get_top_stories(2)
+      end)
+
+    assert result == :error
+    assert log =~ "Failed to get story: Connection error: %Req.TransportError{reason: :timeout}"
   end
 
   @tag skip: "slow test due to Req retries; use `--include skip` if needed"
@@ -133,7 +140,13 @@ defmodule Hnapi.Hn.ClientTest do
       Req.Test.text(Plug.Conn.put_status(conn, 500), "fail")
     end)
 
-    assert Hnapi.Hn.Client.get_top_stories(2) == :error
+    {result, log} =
+      with_log(fn ->
+        Hnapi.Hn.Client.get_top_stories(2)
+      end)
+
+    assert result == :error
+    assert log =~ "Failed to get story: API call returned non-2xx status"
   end
 
   test "returns error on responses with invalid content type" do
@@ -149,7 +162,13 @@ defmodule Hnapi.Hn.ClientTest do
       Req.Test.text(conn, "some content")
     end)
 
-    assert Hnapi.Hn.Client.get_top_stories(2) == :error
+    {result, log} =
+      with_log(fn ->
+        Hnapi.Hn.Client.get_top_stories(2)
+      end)
+
+    assert result == :error
+    assert log =~ "Failed to get story: Invalid content type"
   end
 
   test "returns error on invalid json" do
@@ -165,7 +184,13 @@ defmodule Hnapi.Hn.ClientTest do
       Req.Test.json(conn, "some content")
     end)
 
-    assert Hnapi.Hn.Client.get_top_stories(2) == :error
+    {result, log} =
+      with_log(fn ->
+        Hnapi.Hn.Client.get_top_stories(2)
+      end)
+
+    assert result == :error
+    assert log =~ "Failed to get story: Invalid response body"
   end
 
   @tag skip: "slow test due to Req retries; use `--include skip` if needed"
@@ -175,6 +200,12 @@ defmodule Hnapi.Hn.ClientTest do
       Req.Test.transport_error(conn, :timeout)
     end)
 
-    assert Hnapi.Hn.Client.get_top_stories(2) == :error
+    {result, log} =
+      with_log(fn ->
+        Hnapi.Hn.Client.get_top_stories(2)
+      end)
+
+    assert result == :error
+    assert log =~ "Failed to get story: Connection error: %Req.TransportError{reason: :timeout}"
   end
 end

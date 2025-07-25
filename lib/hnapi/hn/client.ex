@@ -5,6 +5,8 @@ defmodule Hnapi.Hn.Client do
   It uses Req for HTTP requests.
   """
 
+  require Logger
+
   @type id :: non_neg_integer()
   # NOTE We could use atom keys, to get a better type safety.
   @type story :: map()
@@ -36,33 +38,46 @@ defmodule Hnapi.Hn.Client do
   end
 
   defp get_stories(story_ids, limit) do
-    stream =
+    results =
       story_ids
       |> Enum.take(limit)
       |> Task.async_stream(&get_story/1, timeout: @task_timeout)
+      |> Enum.reduce({:ok, []}, fn
+        {:ok, {:ok, result}}, {status, acc} ->
+          {status, [result | acc]}
 
-    if Enum.all?(stream, fn
-         {:ok, {:ok, _}} -> true
-         _ -> false
-       end) do
-      stream
-      |> Enum.map(fn {:ok, {:ok, result}} -> result end)
-      |> then(&{:ok, &1})
-    else
-      # TODO: log the error
-      :error
+        {:ok, :error}, {_, acc} ->
+          {:error, acc}
+
+        {:exit, reason}, {_, acc} ->
+          Logger.error("Failed to get story: Task error - #{inspect(reason)}")
+          {:error, acc}
+      end)
+
+    case results do
+      {:ok, stories} -> {:ok, Enum.reverse(stories)}
+      {:error, _} -> :error
     end
   end
 
   defp get_json(url) do
     with {:ok, response} <- Req.get(url, Application.get_env(:hnapi, :hn_req_opts, [])),
-         true <- response.status in 200..299,
-         true <- application_json?(response),
-         true <- is_list(response.body) or is_map(response.body) do
+         {:status, true} <- {:status, response.status in 200..299},
+         {:content_type, true} <- {:content_type, application_json?(response)},
+         {:body, true} <- {:body, is_list(response.body) or is_map(response.body)} do
       {:ok, response.body}
     else
-      _ -> :error
+      {:error, response} -> log_error("Connection error: #{inspect(response)}")
+      {:status, false} -> log_error("API call returned non-2xx status")
+      {:content_type, false} -> log_error("Invalid content type")
+      {:body, false} -> log_error("Invalid response body")
+      _ -> log_error("Unknown API error")
     end
+  end
+
+  defp log_error(reason) do
+    Logger.error("Failed to get story: #{reason}")
+    :error
   end
 
   defp application_json?(response) do
