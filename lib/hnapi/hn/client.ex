@@ -6,7 +6,8 @@ defmodule Hnapi.Hn.Client do
   """
 
   @type id :: non_neg_integer()
-  @type stories :: %{id => map()}
+  @type story :: map()
+  @type stories :: [story]
   @type limit :: non_neg_integer()
 
   @base_url "https://hacker-news.firebaseio.com/v0"

@@ -9,7 +9,7 @@ defmodule Hnapi.Datastore.ServerTest do
     :ok = Application.start(:hnapi)
   end
 
-  test "stores and gets stories" do
+  test "stores and returns stories" do
     Hnapi.Datastore.Server.store_stories([%{"id" => 1}])
 
     assert Hnapi.Datastore.Server.get_stories() == [%{"id" => 1}]
@@ -29,6 +29,30 @@ defmodule Hnapi.Datastore.ServerTest do
     assert Hnapi.Datastore.Server.get_stories() == [
              %{"id" => 1, "title" => "title1a"},
              %{"id" => 2, "title" => "title2a"}
+           ]
+  end
+
+  test "returns stories for a given page and limit" do
+    Hnapi.Datastore.Server.store_stories([
+      %{"id" => 1, "title" => "title1"},
+      %{"id" => 2, "title" => "title2"},
+      %{"id" => 3, "title" => "title3"},
+      %{"id" => 4, "title" => "title4"},
+      %{"id" => 5, "title" => "title5"}
+    ])
+
+    assert Hnapi.Datastore.Server.get_stories(1, 2) == [
+             %{"id" => 1, "title" => "title1"},
+             %{"id" => 2, "title" => "title2"}
+           ]
+
+    assert Hnapi.Datastore.Server.get_stories(2, 2) == [
+             %{"id" => 3, "title" => "title3"},
+             %{"id" => 4, "title" => "title4"}
+           ]
+
+    assert Hnapi.Datastore.Server.get_stories(3, 2) == [
+             %{"id" => 5, "title" => "title5"}
            ]
   end
 end
