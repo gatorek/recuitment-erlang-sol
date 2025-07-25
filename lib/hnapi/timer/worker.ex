@@ -26,16 +26,20 @@ defmodule Hnapi.Timer.Worker do
 
   def handle_info(:update_stories, state) do
     old_stories = Hnapi.Datastore.Server.get_stories()
-    new_stories = fetch_and_store_stories()
-    notify_stories_updated(new_stories, old_stories)
+    case fetch_and_store_stories() do
+      :error -> :error
+      new_stories -> notify_stories_updated(new_stories, old_stories)
+    end
     schedule_fetch(state)
 
     {:noreply, state}
   end
 
   defp fetch_and_store_stories do
-    Hnapi.Hn.Client.get_top_stories()
-    |> tap(&Hnapi.Datastore.Server.store_stories/1)
+    case Hnapi.Hn.Client.get_top_stories() do
+      {:ok, stories} -> stories |> tap(&Hnapi.Datastore.Server.store_stories/1)
+      :error -> :error
+    end
   end
 
   defp trigger_fetch do

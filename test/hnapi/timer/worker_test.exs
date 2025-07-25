@@ -1,26 +1,27 @@
 defmodule Hnapi.Timer.WorkerTest do
-  use ExUnit.Case, async: false
+  use ExUnit.Case
   use Mimic
 
   # How often the worker should fetch stories
-  @interval :timer.seconds(1)
+  @interval 100
   # How long we should wait after the last fetch
-  @additional_interval 100
+  @additional_interval 25
 
   setup :set_mimic_global
   setup :verify_on_exit!
 
   test "fetches and stores stories" do
     # Set up expectations for the initial fetch
-    expect(Hnapi.Hn.Client, :get_top_stories, fn -> [%{"id" => 1}] end)
+    expect(Hnapi.Hn.Client, :get_top_stories, fn -> {:ok, [%{"id" => 1}]} end)
     expect(Hnapi.Datastore.Server, :store_stories, fn [%{"id" => 1}] -> :ok end)
 
     {:ok, _pid} = start_supervised({Hnapi.Timer.Worker, @interval})
 
     # Set up expectations for the scheduled fetch
-    expect(Hnapi.Hn.Client, :get_top_stories, fn -> [%{"id" => 2}] end)
+    expect(Hnapi.Hn.Client, :get_top_stories, fn -> {:ok, [%{"id" => 2}]} end)
     expect(Hnapi.Datastore.Server, :get_stories, fn -> [%{"id" => 1}] end)
     expect(Hnapi.Datastore.Server, :store_stories, fn [%{"id" => 2}] -> :ok end)
+    # TODO: set up expectations for the broadcast
     expect(HnapiWeb.Endpoint, :broadcast, fn _, _, _ -> :ok end)
 
     # Wait for the worker to fetch stories
@@ -31,16 +32,49 @@ defmodule Hnapi.Timer.WorkerTest do
 
   test "do not notify if stories have not changed" do
     # Initial fetch
-    expect(Hnapi.Hn.Client, :get_top_stories, fn -> [%{"id" => 1}] end)
+    expect(Hnapi.Hn.Client, :get_top_stories, fn -> {:ok, [%{"id" => 1}]} end)
     expect(Hnapi.Datastore.Server, :store_stories, fn [%{"id" => 1}] -> :ok end)
 
     {:ok, _pid} = start_supervised({Hnapi.Timer.Worker, @interval})
 
     # Scheduled fetch
     # Do not expect to receive any notifications
-    expect(Hnapi.Hn.Client, :get_top_stories, fn -> [%{"id" => 1}] end)
+    expect(Hnapi.Hn.Client, :get_top_stories, fn -> {:ok, [%{"id" => 1}]} end)
     expect(Hnapi.Datastore.Server, :get_stories, fn -> [%{"id" => 1}] end)
     expect(Hnapi.Datastore.Server, :store_stories, fn [%{"id" => 1}] -> :ok end)
+
+    # Wait for the worker to fetch and process the stories
+    Process.sleep(@interval)
+    Process.sleep(@additional_interval)
+  end
+
+  test "handles errors in scheduled fetch" do
+    # Initial fetch went ok
+    expect(Hnapi.Hn.Client, :get_top_stories, fn -> {:ok, [%{"id" => 1}]} end)
+    expect(Hnapi.Datastore.Server, :store_stories, fn [%{"id" => 1}] -> :ok end)
+
+    {:ok, _pid} = start_supervised({Hnapi.Timer.Worker, @interval})
+
+    # Scheduled fetch failed
+    # Do not store or notify after receiving an error from Hn Client
+    expect(Hnapi.Hn.Client, :get_top_stories, fn -> :error end)
+
+    # Wait for the worker to fetch and process the stories
+    Process.sleep(@interval)
+    Process.sleep(@additional_interval)
+  end
+
+  test "handles errors in initial fetch" do
+    # Initial fetch failed - do not store or notify
+    expect(Hnapi.Hn.Client, :get_top_stories, fn -> :error end)
+
+    {:ok, _pid} = start_supervised({Hnapi.Timer.Worker, @interval})
+
+    # Scheduled fetch succedeed
+    expect(Hnapi.Hn.Client, :get_top_stories, fn -> {:ok, [%{"id" => 2}]} end)
+    expect(Hnapi.Datastore.Server, :get_stories, fn -> [] end)
+    expect(Hnapi.Datastore.Server, :store_stories, fn [%{"id" => 2}] -> :ok end)
+    expect(HnapiWeb.Endpoint, :broadcast, fn _, _, _ -> :ok end)
 
     # Wait for the worker to fetch and process the stories
     Process.sleep(@interval)

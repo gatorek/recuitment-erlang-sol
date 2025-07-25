@@ -7,7 +7,6 @@ defmodule Hnapi.Datastore.Server do
   @type limit :: non_neg_integer()
   @type id :: non_neg_integer()
   @type story :: Hnapi.Hn.Client.story()
-  @type stories :: Hnapi.Hn.Client.stories()
 
   use GenServer
 
@@ -19,7 +18,7 @@ defmodule Hnapi.Datastore.Server do
     {:ok, %{stories: []}}
   end
 
-  @spec store_stories(stories) :: :ok
+  @spec store_stories([story]) :: :ok
   def store_stories(stories)
       # Basic validation, to make sure that we won't crash the server
       when is_list(stories) do
@@ -28,12 +27,12 @@ defmodule Hnapi.Datastore.Server do
     :ok
   end
 
-  @spec get_stories() :: stories
+  @spec get_stories() :: [story]
   def get_stories() do
     GenServer.call(__MODULE__, :get_stories)
   end
 
-  @spec get_stories(page, limit) :: stories
+  @spec get_stories(page, limit) :: [story]
   def get_stories(page, limit)
       # Basic validation, to make sure that we won't crash the server
       when is_integer(page) and is_integer(limit) and page > 0 and limit > 0 do
