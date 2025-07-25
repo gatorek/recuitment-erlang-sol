@@ -6,6 +6,7 @@ defmodule Hnapi.Hn.Client do
   """
 
   @type id :: non_neg_integer()
+  # NOTE We could use atom keys, to get a better type safety.
   @type story :: map()
   @type limit :: non_neg_integer()
   @type url :: String.t()

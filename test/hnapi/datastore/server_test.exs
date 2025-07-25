@@ -3,8 +3,7 @@ defmodule Hnapi.Datastore.ServerTest do
 
   setup do
     # Restart application to ensure clean state for every test.
-    # We could configure the test env to skip starting the datastore and run it manually here.
-    # TODO maybe we should configure the test env to skip starting the datastore and run it manually here.
+    # NOTE We could configure the test env to skip starting the datastore and run it manually here.
     :ok = Application.stop(:hnapi)
     :ok = Application.start(:hnapi)
   end

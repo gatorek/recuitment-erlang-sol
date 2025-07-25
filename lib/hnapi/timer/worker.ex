@@ -35,6 +35,8 @@ defmodule Hnapi.Timer.Worker do
     {:noreply, state}
   end
 
+  # This may take a while, we could do this in a separate process.
+  # But the worker runs not often, so it's not a big deal.
   defp fetch_and_store_stories do
     case Hnapi.Hn.Client.get_top_stories() do
       {:ok, stories} -> stories |> tap(&Hnapi.Datastore.Server.store_stories/1)
@@ -46,7 +48,9 @@ defmodule Hnapi.Timer.Worker do
     Process.send(self(), :init_stories, [])
   end
 
-  # TODO we shouldn't communicate with channels directly
+  # We could use some pubsub library to notify the channel.
+  # But the worker is really not a business logic of the application,
+  # so we keep it simple.
   defp notify_stories_updated(new_stories, old_stories) do
     # Notify only if stories have changed
     # Send the entire new list of stories, to have a correct ordering on the client side
