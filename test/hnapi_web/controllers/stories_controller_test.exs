@@ -6,7 +6,7 @@ defmodule HnapiWeb.StoriesControllerTest do
 
   describe "GET /api/stories" do
     test "returns empty map for empty stories", %{conn: conn} do
-      expect(Hnapi.Datastore.Server, :get_stories, fn _, _ -> [] end)
+      expect(Hnapi.Datastore, :get_stories, fn _, _ -> [] end)
 
       response =
         conn
@@ -17,7 +17,7 @@ defmodule HnapiWeb.StoriesControllerTest do
     end
 
     test "returns stories data for non empty stories", %{conn: conn} do
-      expect(Hnapi.Datastore.Server, :get_stories, fn _, _ -> [%{"id" => 1}] end)
+      expect(Hnapi.Datastore, :get_stories, fn _, _ -> [%{"id" => 1}] end)
 
       response =
         conn
@@ -28,7 +28,7 @@ defmodule HnapiWeb.StoriesControllerTest do
     end
 
     test "returns stories data for non empty stories with page and limit", %{conn: conn} do
-      expect(Hnapi.Datastore.Server, :get_stories, fn page, limit ->
+      expect(Hnapi.Datastore, :get_stories, fn page, limit ->
         assert page == 1
         assert limit == 2
 
@@ -47,7 +47,7 @@ defmodule HnapiWeb.StoriesControllerTest do
     end
 
     test "use default values for page and limit when missing params", %{conn: conn} do
-      expect(Hnapi.Datastore.Server, :get_stories, fn page, limit ->
+      expect(Hnapi.Datastore, :get_stories, fn page, limit ->
         assert page == HnapiWeb.StoriesController.default_page()
         assert limit == HnapiWeb.StoriesController.default_limit()
         []
@@ -70,7 +70,7 @@ defmodule HnapiWeb.StoriesControllerTest do
 
   describe "GET /api/stories/:id" do
     test "returns story by id", %{conn: conn} do
-      expect(Hnapi.Datastore.Server, :get_story, fn id ->
+      expect(Hnapi.Datastore, :get_story, fn id ->
         assert id == 1
         %{"id" => 1}
       end)
@@ -84,7 +84,7 @@ defmodule HnapiWeb.StoriesControllerTest do
     end
 
     test "returns not found for non existing story", %{conn: conn} do
-      expect(Hnapi.Datastore.Server, :get_story, fn id ->
+      expect(Hnapi.Datastore, :get_story, fn id ->
         assert id == 1
         nil
       end)

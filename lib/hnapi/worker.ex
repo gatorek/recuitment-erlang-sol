@@ -1,4 +1,4 @@
-defmodule Hnapi.Timer.Worker do
+defmodule Hnapi.Worker do
   @moduledoc """
   A worker that polls the top stories from Hacker News.
 
@@ -25,7 +25,7 @@ defmodule Hnapi.Timer.Worker do
   end
 
   def handle_info(:update_stories, state) do
-    old_stories = Hnapi.Datastore.Server.get_stories()
+    old_stories = Hnapi.Datastore.get_stories()
 
     case fetch_and_store_stories() do
       :error -> :error
@@ -40,10 +40,10 @@ defmodule Hnapi.Timer.Worker do
   # This may take a while, we could do this in a separate process.
   # But the worker runs not often, so it's not a big deal.
   defp fetch_and_store_stories do
-    case Hnapi.Hn.Client.get_top_stories() do
+    case Hnapi.HackerNewsClient.get_top_stories() do
       {:ok, stories} ->
         stories
-        |> tap(&Hnapi.Datastore.Server.store_stories/1)
+        |> tap(&Hnapi.Datastore.store_stories/1)
         |> Enum.map(&Hnapi.Helper.story_recap/1)
 
       :error ->

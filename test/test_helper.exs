@@ -1,5 +1,5 @@
 ExUnit.configure(exclude: [skip: true])
-Mimic.copy(Hnapi.Hn.Client)
-Mimic.copy(Hnapi.Datastore.Server)
+Mimic.copy(Hnapi.HackerNewsClient)
+Mimic.copy(Hnapi.Datastore)
 Mimic.copy(HnapiWeb.Endpoint)
 ExUnit.start()

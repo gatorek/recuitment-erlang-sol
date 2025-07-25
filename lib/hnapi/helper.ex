@@ -3,7 +3,7 @@ defmodule Hnapi.Helper do
   Helper functions for the application.
   """
 
-  @type story :: Hnapi.Hn.Client.story()
+  @type story :: Hnapi.HackerNewsClient.story()
 
   @recap_fields ~w[id by title url]
 

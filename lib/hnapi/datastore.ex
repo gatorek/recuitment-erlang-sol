@@ -1,4 +1,4 @@
-defmodule Hnapi.Datastore.Server do
+defmodule Hnapi.Datastore do
   @moduledoc """
   Local store for the top stories.
   """
@@ -10,7 +10,7 @@ defmodule Hnapi.Datastore.Server do
   @type page :: non_neg_integer()
   @type limit :: non_neg_integer()
   @type id :: non_neg_integer()
-  @type story :: Hnapi.Hn.Client.story()
+  @type story :: Hnapi.HackerNewsClient.story()
 
   def start_link(opts) do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
@@ -64,10 +64,12 @@ defmodule Hnapi.Datastore.Server do
   end
 
   def handle_call({:get_story, id}, _from, state) do
-    {:reply, Enum.find(state.stories, fn story -> story["id"] == id end), state}
+    state.stories
+    |> Enum.find(fn story -> story["id"] == id end)
+    |> then(&{:reply, &1, state})
   end
 
-  def paginate(stories, page, limit) do
+  defp paginate(stories, page, limit) do
     Enum.slice(stories, (page - 1) * limit, limit)
   end
 end

@@ -14,4 +14,4 @@ config :logger, level: :warning
 config :phoenix, :plug_init_mode, :runtime
 
 config :hnapi,
-  hn_req_opts: [plug: {Req.Test, Hnapi.Hn.Client}]
+  hn_req_opts: [plug: {Req.Test, Hnapi.HackerNewsClient}]

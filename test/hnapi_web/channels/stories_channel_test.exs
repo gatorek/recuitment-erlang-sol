@@ -5,8 +5,7 @@ defmodule HnapiWeb.StoriesChannelTest do
   setup :verify_on_exit!
 
   test "sends stories to client on join" do
-    # Mock the Datastore.Server to return some test stories
-    expect(Hnapi.Datastore.Server, :get_stories, fn ->
+    expect(Hnapi.Datastore, :get_stories, fn ->
       [
         %{"id" => 1, "title" => "Test Story 1"},
         %{"id" => 2, "title" => "Test Story 2"}
@@ -25,8 +24,7 @@ defmodule HnapiWeb.StoriesChannelTest do
   end
 
   test "broadcasts are pushed to the client" do
-    # Mock the Datastore.Server for the join
-    stub(Hnapi.Datastore.Server, :get_stories, fn -> %{} end)
+    stub(Hnapi.Datastore, :get_stories, fn -> [] end)
 
     {:ok, _reply, socket} = connect_socket()
     broadcast_from!(socket, "broadcast", %{"some" => "data"})

@@ -16,9 +16,9 @@ defmodule Hnapi.Application do
         # {Hnapi.Worker, arg},
         # Start to serve requests, typically the last entry
         HnapiWeb.Endpoint,
-        Hnapi.Datastore.Server
+        Hnapi.Datastore
       ]
-      |> maybe_add_timer()
+      |> maybe_add_worker()
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
@@ -34,11 +34,11 @@ defmodule Hnapi.Application do
     :ok
   end
 
-  defp maybe_add_timer(children) do
+  defp maybe_add_worker(children) do
     interval = Application.get_env(:hnapi, :fetch_stories_interval)
 
     if interval do
-      children ++ [{Hnapi.Timer.Worker, interval}]
+      children ++ [{Hnapi.Worker, interval}]
     else
       children
     end

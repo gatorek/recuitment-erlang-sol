@@ -1,4 +1,4 @@
-defmodule Hnapi.Hn.ClientTest do
+defmodule Hnapi.HackerNewsClientTest do
   use ExUnit.Case
   import ExUnit.CaptureLog
   import Req.Test
@@ -6,24 +6,24 @@ defmodule Hnapi.Hn.ClientTest do
   setup :set_req_test_to_shared
 
   test "returns empty map when no top stories" do
-    Req.Test.stub(Hnapi.Hn.Client, fn conn ->
+    Req.Test.expect(Hnapi.HackerNewsClient, fn conn ->
       assert conn.request_path == "/v0/topstories.json"
 
       Req.Test.json(conn, [])
     end)
 
-    assert Hnapi.Hn.Client.get_top_stories() == {:ok, []}
+    assert Hnapi.HackerNewsClient.get_top_stories() == {:ok, []}
   end
 
-  test "returns stories data" do
-    Req.Test.expect(Hnapi.Hn.Client, fn conn ->
+  test "gets and returns stories data" do
+    Req.Test.expect(Hnapi.HackerNewsClient, fn conn ->
       assert conn.request_path == "/v0/topstories.json"
 
       Req.Test.json(conn, [112, 113])
     end)
 
     # Use stub because of random ordering of requests
-    Req.Test.stub(Hnapi.Hn.Client, fn
+    Req.Test.stub(Hnapi.HackerNewsClient, fn
       conn = %{request_path: "/v0/item/112.json"} ->
         Req.Test.json(conn, %{
           "by" => "user1",
@@ -51,7 +51,7 @@ defmodule Hnapi.Hn.ClientTest do
         })
     end)
 
-    assert Hnapi.Hn.Client.get_top_stories() ==
+    assert Hnapi.HackerNewsClient.get_top_stories() ==
              {:ok,
               [
                 %{
@@ -79,15 +79,15 @@ defmodule Hnapi.Hn.ClientTest do
               ]}
   end
 
-  test "honors limit when fetching stories" do
-    Req.Test.expect(Hnapi.Hn.Client, fn conn ->
+  test "gets limited number of stories" do
+    Req.Test.expect(Hnapi.HackerNewsClient, fn conn ->
       assert conn.request_path == "/v0/topstories.json"
 
       Req.Test.json(conn, [112, 113, 114, 115])
     end)
 
     # Use stub because of random ordering of requests
-    Req.Test.stub(Hnapi.Hn.Client, fn
+    Req.Test.stub(Hnapi.HackerNewsClient, fn
       conn = %{request_path: "/v0/item/112.json"} ->
         Req.Test.json(conn, %{"id" => 112})
 
@@ -95,7 +95,7 @@ defmodule Hnapi.Hn.ClientTest do
         Req.Test.json(conn, %{"id" => 113})
     end)
 
-    assert Hnapi.Hn.Client.get_top_stories(2) ==
+    assert Hnapi.HackerNewsClient.get_top_stories(2) ==
              {:ok,
               [
                 %{"id" => 112},
@@ -103,23 +103,24 @@ defmodule Hnapi.Hn.ClientTest do
               ]}
   end
 
+  # NOTE: we may try to configure Req differently for test environment
   @tag skip: "slow test due to Req retries; use `--include skip` if needed"
   test "returns error on connection errors" do
     # Expect to return top stories ids
-    Req.Test.expect(Hnapi.Hn.Client, fn conn ->
+    Req.Test.expect(Hnapi.HackerNewsClient, fn conn ->
       assert conn.request_path == "/v0/topstories.json"
 
       Req.Test.json(conn, [112, 113, 114, 115])
     end)
 
     # Expect to timeout fetching stories (req will retry)
-    Req.Test.stub(Hnapi.Hn.Client, fn conn ->
+    Req.Test.stub(Hnapi.HackerNewsClient, fn conn ->
       Req.Test.transport_error(conn, :timeout)
     end)
 
     {result, log} =
       with_log(fn ->
-        Hnapi.Hn.Client.get_top_stories(2)
+        Hnapi.HackerNewsClient.get_top_stories(2)
       end)
 
     assert result == :error
@@ -129,20 +130,20 @@ defmodule Hnapi.Hn.ClientTest do
   @tag skip: "slow test due to Req retries; use `--include skip` if needed"
   test "returns error on non-successful responses" do
     # Expect to return top stories ids
-    Req.Test.expect(Hnapi.Hn.Client, fn conn ->
+    Req.Test.expect(Hnapi.HackerNewsClient, fn conn ->
       assert conn.request_path == "/v0/topstories.json"
 
       Req.Test.json(conn, [112, 113, 114, 115])
     end)
 
     # Expect to fail fetching stories (req will retry)
-    Req.Test.stub(Hnapi.Hn.Client, fn conn ->
+    Req.Test.stub(Hnapi.HackerNewsClient, fn conn ->
       Req.Test.text(Plug.Conn.put_status(conn, 500), "fail")
     end)
 
     {result, log} =
       with_log(fn ->
-        Hnapi.Hn.Client.get_top_stories(2)
+        Hnapi.HackerNewsClient.get_top_stories(2)
       end)
 
     assert result == :error
@@ -151,20 +152,20 @@ defmodule Hnapi.Hn.ClientTest do
 
   test "returns error on responses with invalid content type" do
     # Expect to return top stories ids
-    Req.Test.expect(Hnapi.Hn.Client, fn conn ->
+    Req.Test.expect(Hnapi.HackerNewsClient, fn conn ->
       assert conn.request_path == "/v0/topstories.json"
 
       Req.Test.json(conn, [112, 113, 114, 115])
     end)
 
     # Expect to return invalid content type
-    Req.Test.stub(Hnapi.Hn.Client, fn conn ->
+    Req.Test.stub(Hnapi.HackerNewsClient, fn conn ->
       Req.Test.text(conn, "some content")
     end)
 
     {result, log} =
       with_log(fn ->
-        Hnapi.Hn.Client.get_top_stories(2)
+        Hnapi.HackerNewsClient.get_top_stories(2)
       end)
 
     assert result == :error
@@ -173,20 +174,20 @@ defmodule Hnapi.Hn.ClientTest do
 
   test "returns error on invalid json" do
     # Expect to return top stories ids
-    Req.Test.expect(Hnapi.Hn.Client, fn conn ->
+    Req.Test.expect(Hnapi.HackerNewsClient, fn conn ->
       assert conn.request_path == "/v0/topstories.json"
 
       Req.Test.json(conn, [112, 113, 114, 115])
     end)
 
     # Expect to return invalid content
-    Req.Test.stub(Hnapi.Hn.Client, fn conn ->
+    Req.Test.stub(Hnapi.HackerNewsClient, fn conn ->
       Req.Test.json(conn, "some content")
     end)
 
     {result, log} =
       with_log(fn ->
-        Hnapi.Hn.Client.get_top_stories(2)
+        Hnapi.HackerNewsClient.get_top_stories(2)
       end)
 
     assert result == :error
@@ -196,13 +197,13 @@ defmodule Hnapi.Hn.ClientTest do
   @tag skip: "slow test due to Req retries; use `--include skip` if needed"
   test "returns error on empty list of top stories ids" do
     # Expect to fail fetching story ids
-    Req.Test.stub(Hnapi.Hn.Client, fn conn ->
+    Req.Test.stub(Hnapi.HackerNewsClient, fn conn ->
       Req.Test.transport_error(conn, :timeout)
     end)
 
     {result, log} =
       with_log(fn ->
-        Hnapi.Hn.Client.get_top_stories(2)
+        Hnapi.HackerNewsClient.get_top_stories(2)
       end)
 
     assert result == :error

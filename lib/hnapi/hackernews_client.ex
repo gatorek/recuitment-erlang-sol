@@ -1,4 +1,4 @@
-defmodule Hnapi.Hn.Client do
+defmodule Hnapi.HackerNewsClient do
   @moduledoc """
   A client for the Hacker News API.
 
@@ -14,12 +14,12 @@ defmodule Hnapi.Hn.Client do
   @type url :: String.t()
 
   @base_url "https://hacker-news.firebaseio.com/v0"
-  @default_limit 50
-  # Task timeout for getting stories. Includes Req retries.
-  @task_timeout 10_000
+  @default_stories_limit 50
+  # Task timeout for getting stories, considering Req retries.
+  @get_story_timeout 10_000
 
   @spec get_top_stories(limit) :: {:ok, [story]} | :error
-  def get_top_stories(limit \\ @default_limit) do
+  def get_top_stories(limit \\ @default_stories_limit) do
     case get_top_stories_ids() do
       {:ok, story_ids} ->
         get_stories(story_ids, limit)
@@ -41,7 +41,7 @@ defmodule Hnapi.Hn.Client do
     results =
       story_ids
       |> Enum.take(limit)
-      |> Task.async_stream(&get_story/1, timeout: @task_timeout)
+      |> Task.async_stream(&get_story/1, timeout: @get_story_timeout)
       |> Enum.reduce({:ok, []}, fn
         {:ok, {:ok, result}}, {status, acc} ->
           {status, [result | acc]}
@@ -50,7 +50,7 @@ defmodule Hnapi.Hn.Client do
           {:error, acc}
 
         {:exit, reason}, {_, acc} ->
-          Logger.error("Failed to get story: Task error - #{inspect(reason)}")
+          log_error("Task error - #{inspect(reason)}")
           {:error, acc}
       end)
 
@@ -63,7 +63,7 @@ defmodule Hnapi.Hn.Client do
   defp get_json(url) do
     with {:ok, response} <- Req.get(url, Application.get_env(:hnapi, :hn_req_opts, [])),
          {:status, true} <- {:status, response.status in 200..299},
-         {:content_type, true} <- {:content_type, application_json?(response)},
+         {:content_type, true} <- {:content_type, correct_content_type?(response)},
          {:body, true} <- {:body, is_list(response.body) or is_map(response.body)} do
       {:ok, response.body}
     else
@@ -79,7 +79,7 @@ defmodule Hnapi.Hn.Client do
     :error
   end
 
-  defp application_json?(response) do
+  defp correct_content_type?(response) do
     response.headers
     |> Map.get("content-type", [])
     |> Enum.any?(fn content_type ->

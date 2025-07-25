@@ -6,7 +6,7 @@ defmodule HnapiWeb.StoriesChannel do
 
   @impl true
   def join("stories:lobby", _payload, socket) do
-    stories = Hnapi.Datastore.Server.get_stories()
+    stories = Hnapi.Datastore.get_stories()
 
     {:ok, %{stories: stories}, socket}
   end

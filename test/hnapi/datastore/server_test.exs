@@ -1,4 +1,4 @@
-defmodule Hnapi.Datastore.ServerTest do
+defmodule Hnapi.DatastoreTest do
   use ExUnit.Case
 
   setup do
@@ -9,30 +9,30 @@ defmodule Hnapi.Datastore.ServerTest do
   end
 
   test "stores and returns stories" do
-    Hnapi.Datastore.Server.store_stories([%{"id" => 1}])
+    Hnapi.Datastore.store_stories([%{"id" => 1}])
 
-    assert Hnapi.Datastore.Server.get_stories() == [%{"id" => 1}]
+    assert Hnapi.Datastore.get_stories() == [%{"id" => 1}]
   end
 
   test "overrides existing stories with new data" do
-    Hnapi.Datastore.Server.store_stories([
+    Hnapi.Datastore.store_stories([
       %{"id" => 1, "title" => "title1"},
       %{"id" => 2, "title" => "title2"}
     ])
 
-    Hnapi.Datastore.Server.store_stories([
+    Hnapi.Datastore.store_stories([
       %{"id" => 1, "title" => "title1a"},
       %{"id" => 2, "title" => "title2a"}
     ])
 
-    assert Hnapi.Datastore.Server.get_stories() == [
+    assert Hnapi.Datastore.get_stories() == [
              %{"id" => 1, "title" => "title1a"},
              %{"id" => 2, "title" => "title2a"}
            ]
   end
 
   test "returns stories for a given page and limit" do
-    Hnapi.Datastore.Server.store_stories([
+    Hnapi.Datastore.store_stories([
       %{"id" => 1, "title" => "title1"},
       %{"id" => 2, "title" => "title2"},
       %{"id" => 3, "title" => "title3"},
@@ -40,41 +40,41 @@ defmodule Hnapi.Datastore.ServerTest do
       %{"id" => 5, "title" => "title5"}
     ])
 
-    assert Hnapi.Datastore.Server.get_stories(1, 2) == [
+    assert Hnapi.Datastore.get_stories(1, 2) == [
              %{"id" => 1, "title" => "title1"},
              %{"id" => 2, "title" => "title2"}
            ]
 
-    assert Hnapi.Datastore.Server.get_stories(2, 2) == [
+    assert Hnapi.Datastore.get_stories(2, 2) == [
              %{"id" => 3, "title" => "title3"},
              %{"id" => 4, "title" => "title4"}
            ]
 
-    assert Hnapi.Datastore.Server.get_stories(3, 2) == [
+    assert Hnapi.Datastore.get_stories(3, 2) == [
              %{"id" => 5, "title" => "title5"}
            ]
   end
 
   test "returns story by id" do
-    Hnapi.Datastore.Server.store_stories([
+    Hnapi.Datastore.store_stories([
       %{"id" => 1, "title" => "title1"},
       %{"id" => 2, "title" => "title2"}
     ])
 
-    assert Hnapi.Datastore.Server.get_story(1) == %{"id" => 1, "title" => "title1"}
-    assert Hnapi.Datastore.Server.get_story(2) == %{"id" => 2, "title" => "title2"}
+    assert Hnapi.Datastore.get_story(1) == %{"id" => 1, "title" => "title1"}
+    assert Hnapi.Datastore.get_story(2) == %{"id" => 2, "title" => "title2"}
   end
 
   test "returns nil for non existing story" do
-    assert Hnapi.Datastore.Server.get_story(1) == nil
+    assert Hnapi.Datastore.get_story(1) == nil
   end
 
   test "returns selected fields from the story" do
-    Hnapi.Datastore.Server.store_stories([
+    Hnapi.Datastore.store_stories([
       %{"id" => 1, "title" => "title1", "url" => "url1"}
     ])
 
-    assert Hnapi.Datastore.Server.get_story(1) == %{
+    assert Hnapi.Datastore.get_story(1) == %{
              "id" => 1,
              "title" => "title1",
              "url" => "url1"

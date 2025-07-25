@@ -7,7 +7,7 @@ defmodule HnapiWeb.StoriesController do
   def index(conn, params) do
     with {:ok, page} <- parse_int(params["page"], @default_page),
          {:ok, limit} <- parse_int(params["limit"], @default_limit) do
-      json(conn, Hnapi.Datastore.Server.get_stories(page, limit))
+      json(conn, Hnapi.Datastore.get_stories(page, limit))
     else
       :error ->
         conn
@@ -18,7 +18,7 @@ defmodule HnapiWeb.StoriesController do
 
   def show(conn, %{"id" => id}) do
     with {:ok, id} <- parse_int(id, 0),
-         story when not is_nil(story) <- Hnapi.Datastore.Server.get_story(id) do
+         story when not is_nil(story) <- Hnapi.Datastore.get_story(id) do
       json(conn, story)
     else
       :error ->
