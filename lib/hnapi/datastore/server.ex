@@ -8,6 +8,8 @@ defmodule Hnapi.Datastore.Server do
   @type id :: non_neg_integer()
   @type story :: Hnapi.Hn.Client.story()
 
+  @list_fields ~w[id by title url]
+
   use GenServer
 
   def start_link(opts) do
@@ -49,16 +51,27 @@ defmodule Hnapi.Datastore.Server do
   end
 
   def handle_call(:get_stories, _from, state) do
-    {:reply, state.stories, state}
+    state.stories
+    |> Enum.map(&short_data/1)
+    |> then(&{:reply, &1, state})
   end
 
   def handle_call({:get_stories, page, limit}, _from, state) do
-    # If we need to add more business logic, we should extract it to a separate module.
-    # For now, with this simple implementation we can just put it here.
-    {:reply, Enum.slice(state.stories, (page - 1) * limit, limit), state}
+    state.stories
+    |> paginate(page, limit)
+    |> Enum.map(&short_data/1)
+    |> then(&{:reply, &1, state})
   end
 
   def handle_call({:get_story, id}, _from, state) do
     {:reply, Enum.find(state.stories, fn story -> story["id"] == id end), state}
+  end
+
+  defp paginate(stories, page, limit) do
+    Enum.slice(stories, (page - 1) * limit, limit)
+  end
+
+  defp short_data(story) do
+    Map.take(story, @list_fields)
   end
 end
