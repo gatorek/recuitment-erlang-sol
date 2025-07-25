@@ -12,3 +12,39 @@ Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
 
 Ready to run in production? Please [check our deployment guides](https://hexdocs.pm/phoenix/deployment.html).
 
+## REST API
+
+To get stories data, use the following URL:
+
+`http://localhost:4000/api/stories`
+
+To get story details, use the following URL:
+
+`http://localhost:4000/api/stories/:id`
+
+## Websockets
+
+To connect to the websocket endpoint, use the following URL:
+
+`ws://localhost:4000/socket/websocket`
+
+After that, send message to join topic `stories:lobby`:
+
+```json
+["join-ref", "message-ref-1", "stories:lobby", "phx_join", {}]
+```
+
+After that, you should receive message with stories data as well as all the updates.
+
+You may also want to ping the server regularly to keep the connection alive:
+
+```json
+["join-ref", "message-ref-2", "stories:lobby", "ping", {}]
+```
+
+## Notes and TODOs
+
+You may find notes in the code comments, indicating possible future improvements.
+They are marked with `# NOTE`.
+
+We should also add some integration tests in addition to the unit tests.
