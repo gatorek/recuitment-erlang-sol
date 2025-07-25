@@ -11,8 +11,8 @@ defmodule HnapiWeb.StoriesChannel do
     {:ok, %{stories: stories}, socket}
   end
 
-  # Add authorization logic here as required.
-  defp authorized?(_payload) do
-    true
+  @impl true
+  def handle_in("ping", payload, socket) do
+    {:reply, {:ok, payload}, socket}
   end
 end
