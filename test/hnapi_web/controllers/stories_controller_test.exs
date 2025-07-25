@@ -61,20 +61,10 @@ defmodule HnapiWeb.StoriesControllerTest do
       assert response == []
     end
 
-    # TODO: we may want to return 400 Bad Request for invalid params.
-    test "use default values for page and limit when invalid params", %{conn: conn} do
-      expect(Hnapi.Datastore.Server, :get_stories, fn page, limit ->
-        assert page == HnapiWeb.StoriesController.default_page()
-        assert limit == HnapiWeb.StoriesController.default_limit()
-        []
-      end)
-
-      response =
-        conn
-        |> get("/api/stories?page=invalid&limit=invalid")
-        |> json_response(200)
-
-      assert response == []
+    test "returns 400 error for invalid page and limit params", %{conn: conn} do
+      assert conn
+             |> get("/api/stories?page=invalid&limit=invalid")
+             |> json_response(400)
     end
   end
 
@@ -105,6 +95,12 @@ defmodule HnapiWeb.StoriesControllerTest do
         |> json_response(404)
 
       assert response == %{"error" => "Story not found"}
+    end
+
+    test "returns 400 error for invalid id param", %{conn: conn} do
+      assert conn
+             |> get("/api/stories/invalid")
+             |> json_response(400)
     end
   end
 end

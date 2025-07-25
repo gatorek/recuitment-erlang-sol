@@ -5,23 +5,31 @@ defmodule HnapiWeb.StoriesController do
   @default_limit 10
 
   def index(conn, params) do
-    page = parse_int(params["page"], @default_page)
-    limit = parse_int(params["limit"], @default_limit)
-
-    json(conn, Hnapi.Datastore.Server.get_stories(page, limit))
+    with {:ok, page} <- parse_int(params["page"], @default_page),
+         {:ok, limit} <- parse_int(params["limit"], @default_limit) do
+      json(conn, Hnapi.Datastore.Server.get_stories(page, limit))
+    else
+      :error ->
+        conn
+        |> put_status(:bad_request)
+        |> json(%{error: "Invalid parameter"})
+    end
   end
 
   def show(conn, %{"id" => id}) do
-    # TODO: handle invalid id; for now we relay on datastore to return nil
-    id = parse_int(id, 0)
-    story = Hnapi.Datastore.Server.get_story(id)
-
-    if story do
+    with {:ok, id} <- parse_int(id, 0),
+         story when not is_nil(story) <- Hnapi.Datastore.Server.get_story(id) do
       json(conn, story)
     else
-      conn
-      |> put_status(:not_found)
-      |> json(%{error: "Story not found"})
+      :error ->
+        conn
+        |> put_status(:bad_request)
+        |> json(%{error: "Invalid parameter"})
+
+      nil ->
+        conn
+        |> put_status(:not_found)
+        |> json(%{error: "Story not found"})
     end
   end
 
@@ -30,9 +38,12 @@ defmodule HnapiWeb.StoriesController do
   def default_limit(), do: @default_limit
 
   defp parse_int(param, default) do
-    case Integer.parse(param || "") do
-      {int_param, _} -> int_param
-      _ -> default
+    with false <- is_nil(param),
+         {integer, ""} <- Integer.parse(param) do
+      {:ok, integer}
+    else
+      true -> {:ok, default}
+      _ -> :error
     end
   end
 end
