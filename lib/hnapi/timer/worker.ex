@@ -17,8 +17,17 @@ defmodule Hnapi.Timer.Worker do
     {:ok, interval}
   end
 
-  def handle_info(:fetch_stories, state) do
+  def handle_info(:init_stories, state) do
     fetch_and_store_stories()
+    schedule_fetch(state)
+
+    {:noreply, state}
+  end
+
+  def handle_info(:update_stories, state) do
+    old_stories = Hnapi.Datastore.Server.get_stories()
+    new_stories = fetch_and_store_stories()
+    notify_stories_updated(new_stories, old_stories)
     schedule_fetch(state)
 
     {:noreply, state}
@@ -26,14 +35,25 @@ defmodule Hnapi.Timer.Worker do
 
   defp fetch_and_store_stories do
     Hnapi.Hn.Client.get_top_stories()
-    |> Hnapi.Datastore.Server.store_stories()
+    |> tap(&Hnapi.Datastore.Server.store_stories/1)
   end
 
   defp trigger_fetch do
-    Process.send(self(), :fetch_stories, [])
+    Process.send(self(), :init_stories, [])
+  end
+
+  # TODO we shouldn't communicate with channels directly
+  defp notify_stories_updated(new_stories, old_stories) do
+    # Notify only if stories have changed
+    # Send the entire new list of stories, to have a correct ordering on the client side
+    if new_stories != old_stories do
+      HnapiWeb.Endpoint.broadcast("stories:lobby", "stories_updated", %{
+        stories: new_stories
+      })
+    end
   end
 
   defp schedule_fetch(interval) do
-    Process.send_after(self(), :fetch_stories, interval)
+    Process.send_after(self(), :update_stories, interval)
   end
 end
