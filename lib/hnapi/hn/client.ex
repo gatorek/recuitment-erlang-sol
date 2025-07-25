@@ -71,7 +71,6 @@ defmodule Hnapi.Hn.Client do
       {:status, false} -> log_error("API call returned non-2xx status")
       {:content_type, false} -> log_error("Invalid content type")
       {:body, false} -> log_error("Invalid response body")
-      _ -> log_error("Unknown API error")
     end
   end
 

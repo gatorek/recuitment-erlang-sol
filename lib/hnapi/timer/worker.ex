@@ -42,11 +42,9 @@ defmodule Hnapi.Timer.Worker do
   defp fetch_and_store_stories do
     case Hnapi.Hn.Client.get_top_stories() do
       {:ok, stories} ->
-        Hnapi.Datastore.Server.store_stories(stories)
-
-        # NOTE: We use get_stories() to get the stories with the correct format directly from the datastore
-        # That may be a bit slower. Alternative way - use `short_data/1` to format the stories in the worker.
-        Hnapi.Datastore.Server.get_stories()
+        stories
+        |> tap(&Hnapi.Datastore.Server.store_stories/1)
+        |> Enum.map(&Hnapi.Helper.story_recap/1)
 
       :error ->
         :error
@@ -57,7 +55,7 @@ defmodule Hnapi.Timer.Worker do
     Process.send(self(), :init_stories, [])
   end
 
-  # We could use some pubsub library to notify the channel.
+  # We could use a pubsub library to notify the channel.
   # But the worker is really not a business logic of the application,
   # so we keep it simple.
   defp notify_stories_updated(new_stories, old_stories) do
