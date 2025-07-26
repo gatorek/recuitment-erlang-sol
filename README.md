@@ -45,6 +45,10 @@ You may also want to ping the server regularly to keep the connection alive:
 ## Notes and TODOs
 
 You may find notes in the code comments, indicating possible future improvements.
-They are marked with `# NOTE`.
+They are marked with `# NOTE` for suggestions and `# TODO` for more urgent tasks.
+
+Note: Currently, if the datastore is restarted for any reason, the application will have no data until the worker is triggered again, which may take up to 5 minutes.
+If this delay is not acceptable, we can implement triggering the worker to fetch data immediately when the datastore initializes.
+Note, this change may impact how notifications are sent over websockets.
 
 We should also add some integration tests in addition to the unit tests.

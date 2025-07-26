@@ -61,6 +61,7 @@ defmodule Hnapi.Worker do
   defp notify_stories_updated(new_stories, old_stories) do
     # Notify only if stories have changed
     # Send the entire new list of stories, to have a correct ordering on the client side
+    # TODO: Depending on the requirements, we could compare only the story ids or shortened data.
     if new_stories != old_stories do
       HnapiWeb.Endpoint.broadcast("stories:lobby", "stories_updated", %{
         stories: new_stories
